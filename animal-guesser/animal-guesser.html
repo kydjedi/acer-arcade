@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>AI動物閃現遊戲</title>
+
+<style>
+body {
+    background: #0f172a;
+    color: white;
+    text-align: center;
+    font-family: sans-serif;
+}
+
+#game {
+    margin-top: 50px;
+}
+
+#stage {
+    width: 400px;
+    height: 120px;
+    margin: auto;
+    overflow: hidden;
+    border: 2px solid #334155;
+    position: relative;
+}
+
+.animal {
+    position: absolute;
+    top: 20px;
+    left: -100px;
+    font-size: 60px;
+    opacity: 0;
+}
+
+input, button {
+    margin-top: 10px;
+    padding: 10px;
+}
+</style>
+
+</head>
+<body>
+
+<h1>⚡ AI動物閃現 ⚡</h1>
+
+<div id="game">
+
+    <div id="stage">
+        <div id="animal" class="animal"></div>
+    </div>
+
+    <br>
+    <input id="answer" placeholder="猜是什麼動物">
+    <br>
+
+    <button onclick="check()">確認</button>
+    <button onclick="replay()">再播放</button>
+
+    <p id="result"></p>
+
+</div>
+
+<script>
+
+// 🧠 AI風格動物（用emoji當icon）
+const animals = [
+    {name:"鼠", icon:"🐭"},
+    {name:"牛", icon:"🐮"},
+    {name:"虎", icon:"🐯"},
+    {name:"兔", icon:"🐰"},
+    {name:"龍", icon:"🐲"},
+    {name:"蛇", icon:"🐍"},
+    {name:"馬", icon:"🐴"},
+    {name:"羊", icon:"🐑"},
+    {name:"猴", icon:"🐵"},
+    {name:"雞", icon:"🐔"},
+    {name:"狗", icon:"🐶"},
+    {name:"豬", icon:"🐷"}
+];
+
+let current = null;
+let speed = 600; // 滑過時間(ms)
+let flashes = 3;
+
+function start() {
+    current = animals[Math.floor(Math.random()*animals.length)];
+    playAnimation();
+}
+
+function playAnimation() {
+    const el = document.getElementById("animal");
+
+    let count = 0;
+
+    function flash() {
+        if (count >= flashes) return;
+
+        el.textContent = current.icon;
+
+        el.style.transition = "none";
+        el.style.left = "-100px";
+        el.style.opacity = 1;
+
+        setTimeout(() => {
+            el.style.transition = `left ${speed}ms linear`;
+            el.style.left = "450px";
+        }, 50);
+
+        setTimeout(() => {
+            el.style.opacity = 0;
+            count++;
+            setTimeout(flash, 150);
+        }, speed);
+
+    }
+
+    flash();
+}
+
+// 🔁 再播放（同一隻）
+async function replay() {
+    let r = await fetch(
+            "http://localhost:8000/slow_playback",
+            {
+                method:"POST"
+            }
+        );
+
+        let data = await r.json();
+
+        document.getElementById(
+            "result"
+        ).textContent = data.result;
+
+    playAnimation();
+}
+
+// ✅ 驗證答案
+function check() {
+    const input = document.getElementById("answer").value.trim();
+    const result = document.getElementById("result");
+
+    if (input === current.name) {
+        result.textContent = "✅ 正確!";
+    } else {
+        result.textContent = "❌ 答案是：" + current.name;
+    }
+}
+
+// 🎹 快捷鍵 + 呼叫另一支程式
+document.addEventListener("keydown", function(e) {
+
+    if (e.altKey && e.shiftKey && e.key.toLowerCase() === "s") {
+
+        replay();
+
+        // 🚨 呼叫另一支程式（這裡提供3種做法）
+
+        // 1️⃣ 呼叫本機 API
+        fetch("http://localhost:3000/trigger")
+            .then(res => console.log("已呼叫外部程式"))
+            .catch(err => console.log("外部程式未啟動"));
+
+        // 2️⃣ 開啟另一個網頁（簡單版）
+        // window.open("other.html");
+
+        // 3️⃣ Electron / Node 應用（進階）
+        // window.electronAPI.runScript();
+
+    }
+});
+
+start();
+
+</script>
+
+</body>
+</html>

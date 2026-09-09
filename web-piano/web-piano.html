@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Piano Keyboard</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 50%, #0a0a1a 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    color: #fff;
+    overflow-x: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* ── Rotation wrapper ── */
+  .rotation-wrapper {
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .rotation-wrapper.rotated {
+    transform: rotate(180deg);
+  }
+
+  h1 {
+    margin-top: 20px;
+    font-size: 2rem;
+    background: linear-gradient(90deg, #ff6b9d, #c850c0, #43e97b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 2px;
+  }
+
+  .controls {
+    display: flex;
+    gap: 12px;
+    margin: 16px 0;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+  }
+
+  button {
+    padding: 10px 24px;
+    border: none;
+    border-radius: 30px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  button:active { transform: scale(0.95); }
+
+  .btn-record {
+    background: linear-gradient(135deg, #ff416c, #ff4b2b);
+    color: white;
+    box-shadow: 0 4px 15px rgba(255,65,108,0.4);
+  }
+
+  .btn-record.recording {
+    animation: pulse-red 1s infinite;
+    background: linear-gradient(135deg, #ff0000, #cc0000);
+  }
+
+  @keyframes pulse-red {
+    0%, 100% { box-shadow: 0 4px 15px rgba(255,0,0,0.4); }
+    50% { box-shadow: 0 4px 30px rgba(255,0,0,0.8); }
+  }
+
+  .btn-play {
+    background: linear-gradient(135deg, #11998e, #38ef7d);
+    color: white;
+    box-shadow: 0 4px 15px rgba(56,239,125,0.4);
+  }
+
+  .btn-play:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+
+  .btn-stop {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    box-shadow: 0 4px 15px rgba(118,75,162,0.4);
+  }
+
+  .btn-stop:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+
+  /* ── Rotation toggle button ── */
+  .btn-rotate {
+    background: linear-gradient(135deg, #f7971e, #ffd200);
+    color: #1a1a2e;
+    box-shadow: 0 4px 15px rgba(255,210,0,0.4);
+  }
+
+  .btn-rotate.active {
+    background: linear-gradient(135deg, #ff6b9d, #c850c0);
+    color: white;
+    box-shadow: 0 4px 20px rgba(200,80,192,0.6);
+    animation: pulse-rotate 1.5s infinite;
+  }
+
+  @keyframes pulse-rotate {
+    0%, 100% { box-shadow: 0 4px 15px rgba(200,80,192,0.4); }
+    50% { box-shadow: 0 4px 30px rgba(200,80,192,0.8); }
+  }
+
+  .status {
+    font-size: 0.85rem;
+    color: #aaa;
+    min-height: 20px;
+    margin-bottom: 4px;
+  }
+
+  .volume-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #ccc;
+    font-size: 0.9rem;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100px;
+    height: 6px;
+    border-radius: 3px;
+    background: #333;
+    outline: none;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #c850c0, #43e97b);
+    cursor: pointer;
+  }
+
+  /* ── Piano container with horizontal scroll ── */
+  .piano-container {
+    position: relative;
+    margin: 10px auto 30px;
+    padding: 20px 20px 10px;
+    background: linear-gradient(180deg, #1a1a2e, #16213e);
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    max-width: 98vw;
+    cursor: grab;
+  }
+
+  .piano-container.dragging {
+    cursor: grabbing;
+  }
+
+  /* Scrollbar styling */
+  .piano-container::-webkit-scrollbar {
+    height: 10px;
+  }
+  .piano-container::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.05);
+    border-radius: 5px;
+  }
+  .piano-container::-webkit-scrollbar-thumb {
+    background: linear-gradient(90deg, #c850c0, #43e97b);
+    border-radius: 5px;
+  }
+
+  /* ── Piano layout ── */
+  .piano {
+    position: relative;
+    display: flex;
+    height: 420px;
+    min-width: fit-content;
+    margin: 0 auto;
+  }
+
+  .key {
+    position: relative;
+    cursor: pointer;
+    transition: background 0.05s;
+  }
+
+  /* ── PHYSICAL KEY SIZES ── */
+  .key-white {
+    width: 23.5mm;
+    height: 94mm;
+    background: linear-gradient(180deg, #f8f8f8 0%, #e8e8e8 85%, #d0d0d0 100%);
+    border: 1px solid #bbb;
+    border-radius: 0 0 3mm 3mm;
+    margin-right: -1px;
+    z-index: 1;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3), inset 0 -2px 4px rgba(0,0,0,0.1);
+  }
+
+  .key-white.active {
+    background: linear-gradient(180deg, #e0e0ff 0%, #c8c8f0 85%, #b0b0e0 100%);
+    box-shadow: 0 2px 3px rgba(0,0,0,0.3), inset 0 -1px 2px rgba(0,0,0,0.1);
+    transform: scaleY(0.995);
+    transform-origin: top;
+  }
+
+  .key-black {
+    width: 14.5mm;
+    height: 58mm;
+    background: linear-gradient(180deg, #2a2a2a 0%, #111 60%, #000 100%);
+    border-radius: 0 0 2mm 2mm;
+    position: absolute;
+    z-index: 2;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.6), inset 0 -3px 4px rgba(60,60,60,0.3);
+  }
+
+  .key-black.active {
+    background: linear-gradient(180deg, #3a3a5a 0%, #222244 60%, #111133 100%);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.6), inset 0 -1px 2px rgba(60,60,60,0.3);
+    height: 57mm;
+  }
+
+  .key-label {
+    position: absolute;
+    bottom: 4mm;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 2.8mm;
+    color: #999;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  .key-black .key-label {
+    color: #666;
+    bottom: 3mm;
+    font-size: 2.4mm;
+  }
+
+  .key-white.active .key-label { color: #5555aa; }
+  .key-black.active .key-label { color: #aaaadd; }
+
+  /* ── Scroll hint overlay ── */
+  .scroll-hint {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.4rem;
+    color: rgba(255,255,255,0.3);
+    pointer-events: none;
+    animation: fadeHint 3s ease-in-out infinite;
+    z-index: 10;
+  }
+
+  @keyframes fadeHint {
+    0%, 100% { opacity: 0.2; }
+    50% { opacity: 0.6; }
+  }
+
+  .visualizer-container {
+    width: 90vw;
+    max-width: 800px;
+    height: 60px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: rgba(0,0,0,0.3);
+  }
+
+  canvas { display: block; width: 100%; height: 100%; }
+
+  .note-display {
+    font-size: 1.2rem;
+    min-height: 30px;
+    color: #c850c0;
+    font-weight: bold;
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+
+<!-- Rotation wrapper — everything inside flips together -->
+<div class="rotation-wrapper" id="rotationWrapper">
+
+<h1>🎹 Piano Keyboard</h1>
+
+<div class="controls">
+  <button class="btn-record" id="btnRecord" onclick="toggleRecording()">⏺ Record</button>
+  <button class="btn-play" id="btnPlay" onclick="playRecording()" disabled>▶ Play</button>
+  <button class="btn-stop" id="btnStop" onclick="stopPlayback()" disabled>⏹ Stop</button>
+
+  <!-- ── NEW: Rotation toggle button ── -->
+  <button class="btn-rotate" id="btnRotate" onclick="toggleRotation()">🔄 Rotate</button>
+
+  <div class="volume-control">
+    🎵 <input type="range" id="volumeSlider" min="0" max="100" value="70">
+  </div>
+</div>
+
+<div class="status" id="status">Ready — tap or click the keys to play!</div>
+<div class="note-display" id="noteDisplay"></div>
+
+<div class="visualizer-container">
+  <canvas id="visualizer"></canvas>
+</div>
+
+<div class="piano-container" id="pianoContainer">
+  <div class="scroll-hint" id="scrollHint">⬅ Swipe to scroll ➡</div>
+  <div class="piano" id="piano"></div>
+</div>
+
+</div><!-- end rotation-wrapper -->
+
+<script>
+// ─── Rotation Toggle ──────────────────────────────────
+let isRotated = false;
+
+function toggleRotation() {
+  const wrapper = document.getElementById('rotationWrapper');
+  const btn     = document.getElementById('btnRotate');
+
+  isRotated = !isRotated;
+
+  if (isRotated) {
+    wrapper.classList.add('rotated');
+    btn.classList.add('active');
+    btn.textContent = '🔄 Normal';
+    setStatus('🔃 Screen rotated — keys now face the opposite side!');
+  } else {
+    wrapper.classList.remove('rotated');
+    btn.classList.remove('active');
+    btn.textContent = '🔄 Rotate';
+    setStatus('✅ Screen returned to normal orientation.');
+  }
+
+  // Re-check scroll hint after rotation (dimensions may change)
+  setTimeout(checkScrollHint, 650);
+}
+
+// ─── Audio Context & Master Gain ──────────────────────
+let audioCtx = null;
+let masterGain = null;
+let analyser = null;
+const activeOscillators = {};
+
+function initAudio() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  masterGain = audioCtx.createGain();
+  masterGain.gain.value = 0.7;
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 2048;
+  masterGain.connect(analyser);
+  analyser.connect(audioCtx.destination);
+}
+
+// ─── Piano Sound Synthesis ────────────────────────────
+function playPianoNote(frequency, noteId) {
+  initAudio();
+  if (activeOscillators[noteId]) return;
+
+  const now = audioCtx.currentTime;
+  const volume = document.getElementById('volumeSlider').value / 100;
+
+  const noteGain = audioCtx.createGain();
+  noteGain.gain.setValueAtTime(0, now);
+  noteGain.gain.linearRampToValueAtTime(volume * 0.6, now + 0.01);
+  noteGain.gain.exponentialRampToValueAtTime(volume * 0.35, now + 0.1);
+  noteGain.gain.exponentialRampToValueAtTime(volume * 0.25, now + 0.5);
+
+  const oscillators = [];
+
+  const partials = [
+    { ratio: 1,   gain: 1.0,  type: 'sine' },
+    { ratio: 2,   gain: 0.5,  type: 'sine' },
+    { ratio: 3,   gain: 0.25, type: 'sine' },
+    { ratio: 4,   gain: 0.12, type: 'sine' },
+    { ratio: 5,   gain: 0.06, type: 'sine' },
+    { ratio: 6,   gain: 0.03, type: 'sine' },
+  ];
+
+  partials.forEach(p => {
+    const osc = audioCtx.createOscillator();
+    const pGain = audioCtx.createGain();
+    osc.type = p.type;
+    osc.frequency.setValueAtTime(frequency * p.ratio, now);
+    osc.detune.setValueAtTime(Math.random() * 2 - 1, now);
+    pGain.gain.value = p.gain;
+    osc.connect(pGain);
+    pGain.connect(noteGain);
+    osc.start(now);
+    oscillators.push(osc);
+  });
+
+  const clickOsc = audioCtx.createOscillator();
+  const clickGain = audioCtx.createGain();
+  clickOsc.type = 'sine';
+  clickOsc.frequency.setValueAtTime(frequency * 8, now);
+  clickOsc.frequency.exponentialRampToValueAtTime(frequency * 2, now + 0.05);
+  clickGain.gain.setValueAtTime(volume * 0.15, now);
+  clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+  clickOsc.connect(clickGain);
+  clickGain.connect(noteGain);
+  clickOsc.start(now);
+  clickOsc.stop(now + 0.08);
+
+  noteGain.connect(masterGain);
+  noteGain.gain.setValueAtTime(volume * 0.6, now);
+
+  activeOscillators[noteId] = { oscillators, noteGain };
+}
+
+function stopPianoNote(noteId) {
+  const data = activeOscillators[noteId];
+  if (!data) return;
+
+  const now = audioCtx.currentTime;
+  const releaseTime = 0.3 + Math.random() * 0.2;
+
+  data.noteGain.gain.cancelScheduledValues(now);
+  data.noteGain.gain.setValueAtTime(data.noteGain.gain.value, now);
+  data.noteGain.gain.exponentialRampToValueAtTime(0.001, now + releaseTime);
+
+  data.oscillators.forEach(osc => osc.stop(now + releaseTime + 0.05));
+  delete activeOscillators[noteId];
+}
+
+// ─── Note Definitions (C3 to B6) ──────────────────────
+const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+
+function getFrequency(note, octave) {
+  const semitone = NOTE_NAMES.indexOf(note);
+  const midi = (octave + 1) * 12 + semitone;
+  return 440 * Math.pow(2, (midi - 69) / 12);
+}
+
+// ─── Build Piano Keys ─────────────────────────────────
+const pianoEl = document.getElementById('piano');
+const startOctave = 3;
+const endOctave = 6;
+
+const whiteNotes = ['C','D','E','F','G','A','B'];
+const blackNotesMap = { C:'C#', D:'D#', E:null, F:'F#', G:'G#', A:'A#', B:null };
+
+const WHITE_KEY_MM = 23.5;
+const BLACK_KEY_MM = 14.5;
+
+for (let oct = startOctave; oct <= endOctave; oct++) {
+  whiteNotes.forEach(note => {
+    const noteId = `${note}${oct}`;
+    const freq = getFrequency(note, oct);
+
+    const whiteKey = document.createElement('div');
+    whiteKey.className = 'key key-white';
+    whiteKey.dataset.noteId = noteId;
+    whiteKey.dataset.note = note;
+    whiteKey.dataset.octave = oct;
+    whiteKey.dataset.freq = freq;
+
+    const label = document.createElement('span');
+    label.className = 'key-label';
+    label.textContent = `${note}${oct}`;
+    whiteKey.appendChild(label);
+
+    pianoEl.appendChild(whiteKey);
+
+    const bNote = blackNotesMap[note];
+    if (bNote && oct <= endOctave) {
+      const bFreq = getFrequency(bNote, oct);
+      const bId = `${note}#${oct}`;
+
+      const blackKey = document.createElement('div');
+      blackKey.className = 'key key-black';
+      blackKey.dataset.noteId = bId;
+      blackKey.dataset.note = note + '#';
+      blackKey.dataset.octave = oct;
+      blackKey.dataset.freq = bFreq;
+
+      const leftPos = ((oct - startOctave) * 7 + whiteNotes.indexOf(note) + 1) * WHITE_KEY_MM - BLACK_KEY_MM / 2;
+      blackKey.style.left = `${leftPos}mm`;
+
+      const bLabel = document.createElement('span');
+      bLabel.className = 'key-label';
+      bLabel.textContent = `${note}#${oct}`;
+      blackKey.appendChild(bLabel);
+
+      pianoEl.appendChild(blackKey);
+    }
+  });
+}
+
+// ─── Touch Scroll for Piano Container ──────────────────
+const pianoContainer = document.getElementById('pianoContainer');
+let isScrolling = false;
+let scrollStartX = 0;
+let scrollStartY = 0;
+let scrollLeft = 0;
+
+function checkScrollHint() {
+  const hint = document.getElementById('scrollHint');
+  if (pianoContainer.scrollWidth > pianoContainer.clientWidth) {
+    hint.style.display = 'block';
+    setTimeout(() => { hint.style.display = 'none'; }, 4000);
+  } else {
+    hint.style.display = 'none';
+  }
+}
+
+pianoContainer.addEventListener('pointerdown', (e) => {
+  const key = e.target.closest('.key');
+  if (key) return;
+
+  isScrolling = true;
+  scrollStartX = e.clientX;
+  scrollStartY = e.clientY;
+  scrollLeft = pianoContainer.scrollLeft;
+  pianoContainer.classList.add('dragging');
+  pianoContainer.setPointerCapture(e.pointerId);
+});
+
+pianoContainer.addEventListener('pointermove', (e) => {
+  if (!isScrolling) return;
+
+  const dx = e.clientX - scrollStartX;
+  const dy = e.clientY - scrollStartY;
+
+  if (Math.abs(dy) > Math.abs(dx)) {
+    isScrolling = false;
+    pianoContainer.classList.remove('dragging');
+    return;
+  }
+
+  // When rotated, invert scroll direction so it feels natural from the other side
+  const delta = isRotated ? dx : -dx;
+  pianoContainer.scrollLeft = scrollLeft + delta;
+});
+
+pianoContainer.addEventListener('pointerup', (e) => {
+  if (!isScrolling) return;
+  isScrolling = false;
+  pianoContainer.classList.remove('dragging');
+});
+
+pianoContainer.addEventListener('pointercancel', () => {
+  isScrolling = false;
+  pianoContainer.classList.remove('dragging');
+});
+
+window.addEventListener('resize', checkScrollHint);
+checkScrollHint();
+
+// ─── Key Interaction ──────────────────────────────────
+const activeTouches = new Map();
+
+function activateKey(noteId, freq) {
+  const el = document.querySelector(`[data-note-id="${noteId}"]`);
+  if (!el) return;
+  el.classList.add('active');
+  playPianoNote(freq || parseFloat(el.dataset.freq), noteId);
+  updateNoteDisplay(noteId);
+}
+
+function deactivateKey(noteId) {
+  const el = document.querySelector(`[data-note-id="${noteId}"]`);
+  if (!el) return;
+  el.classList.remove('active');
+  stopPianoNote(noteId);
+}
+
+// Mouse events
+pianoEl.addEventListener('mousedown', (e) => {
+  e.preventDefault();
+  const key = e.target.closest('.key');
+  if (!key) return;
+  activateKey(key.dataset.noteId, parseFloat(key.dataset.freq));
+});
+
+document.addEventListener('mousemove', (e) => {
+  const key = e.target.closest('.key');
+  if (key && e.buttons === 1) {
+    const currentActive = document.querySelector('.key.active[data-note-id]');
+    if (!currentActive || currentActive.dataset.noteId !== key.dataset.noteId) {
+      if (currentActive && !activeTouches.has('mouse')) {
+        deactivateKey(currentActive.dataset.noteId);
+      }
+      activateKey(key.dataset.noteId, parseFloat(key.dataset.freq));
+    }
+  }
+});
+
+document.addEventListener('mouseup', () => {
+  document.querySelectorAll('.key.active').forEach(k => {
+    if (!activeTouches.has('mouse')) {
+      deactivateKey(k.dataset.noteId);
+    }
+  });
+  activeTouches.delete('mouse');
+});
+
+// Touch events for multi-touch on keys
+pianoEl.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  initAudio();
+  for (let i = 0; i < e.changedTouches.length; i++) {
+    const touch = e.changedTouches[i];
+    const el = document.elementFromPoint(touch.clientX, touch.clientY);
+    const key = el ? el.closest('.key') : null;
+    if (key) {
+      activeTouches.set(touch.identifier, key.dataset.noteId);
+      activateKey(key.dataset.noteId, parseFloat(key.dataset.freq));
+    }
+  }
+}, { passive: false });
+
+pianoEl.addEventListener('touchmove', (e) => {
+  e.preventDefault();
+  for (let i = 0; i < e.changedTouches.length; i++) {
+    const touch = e.changedTouches[i];
+    const el = document.elementFromPoint(touch.clientX, touch.clientY);
+    const key = el ? el.closest('.key') : null;
+
+    if (key) {
+      const oldNoteId = activeTouches.get(touch.identifier);
+      if (oldNoteId && oldNoteId !== key.dataset.noteId) {
+        deactivateKey(oldNoteId);
+        activateKey(key.dataset.noteId, parseFloat(key.dataset.freq));
+        activeTouches.set(touch.identifier, key.dataset.noteId);
+      } else if (!oldNoteId) {
+        activateKey(key.dataset.noteId, parseFloat(key.dataset.freq));
+        activeTouches.set(touch.identifier, key.dataset.noteId);
+      }
+    } else {
+      const oldNoteId = activeTouches.get(touch.identifier);
+      if (oldNoteId) {
+        deactivateKey(oldNoteId);
+        activeTouches.delete(touch.identifier);
+      }
+    }
+  }
+}, { passive: false });
+
+pianoEl.addEventListener('touchend', (e) => {
+  e.preventDefault();
+  for (let i = 0; i < e.changedTouches.length; i++) {
+    const touch = e.changedTouches[i];
+    const noteId = activeTouches.get(touch.identifier);
+    if (noteId) {
+      deactivateKey(noteId);
+      activeTouches.delete(touch.identifier);
+    }
+  }
+}, { passive: false });
+
+pianoEl.addEventListener('touchcancel', (e) => {
+  for (let i = 0; i < e.changedTouches.length; i++) {
+    const touch = e.changedTouches[i];
+    const noteId = activeTouches.get(touch.identifier);
+    if (noteId) {
+      deactivateKey(noteId);
+      activeTouches.delete(touch.identifier);
+    }
+  }
+});
+
+// ─── Note Display ─────────────────────────────────────
+function updateNoteDisplay(noteId) {
+  const el = document.querySelector(`[data-note-id="${noteId}"]`);
+  if (el) {
+    document.getElementById('noteDisplay').textContent = `${el.dataset.note}${el.dataset.octave}`;
+  }
+}
+
+// ─── Recording System ─────────────────────────────────
+let isRecording = false;
+let recordingStartTime = 0;
+const recordedNotes = [];
+let playbackTimeouts = [];
+
+function toggleRecording() {
+  initAudio();
+  const btn = document.getElementById('btnRecord');
+
+  if (!isRecording) {
+    isRecording = true;
+    recordingStartTime = performance.now();
+    recordedNotes.length = 0;
+    btn.textContent = '⏹ Stop Rec';
+    btn.classList.add('recording');
+    setStatus('🔴 Recording... play some notes!');
+    document.getElementById('btnPlay').disabled = true;
+  } else {
+    isRecording = false;
+    btn.textContent = '⏺ Record';
+    btn.classList.remove('recording');
+    setStatus(`✅ Recorded ${recordedNotes.length / 2} notes. Press Play to listen!`);
+    document.getElementById('btnPlay').disabled = recordedNotes.length === 0;
+  }
+}
+
+function recordWrapper(noteId, freq) {
+  if (isRecording) {
+    const time = performance.now() - recordingStartTime;
+    recordedNotes.push({ noteId, freq: parseFloat(freq || document.querySelector(`[data-note-id="${noteId}"]`)?.dataset.freq), time, type: 'on' });
+  }
+  activateKey(noteId, freq);
+}
+
+function recordDeactivateWrapper(noteId) {
+  if (isRecording) {
+    const time = performance.now() - recordingStartTime;
+    recordedNotes.push({ noteId, time, type: 'off' });
+  }
+  deactivateKey(noteId);
+}
+
+// Patch all event handlers for recording
+pianoEl.addEventListener('mousedown', (e) => {
+  const key = e.target.closest('.key');
+  if (!key) return;
+  recordWrapper(key.dataset.noteId, parseFloat(key.dataset.freq));
+});
+
+document.addEventListener('mousemove', (e) => {
+  const key = e.target.closest('.key');
+  if (key && e.buttons === 1) {
+    const currentActive = document.querySelector('.key.active[data-note-id]');
+    if (!currentActive || currentActive.dataset.noteId !== key.dataset.noteId) {
+      if (currentActive && !activeTouches.has('mouse')) {
+        recordDeactivateWrapper(currentActive.dataset.noteId);
+      }
+      recordWrapper(key.dataset.noteId, parseFloat(key.dataset.freq));
+    }
+  }
+});
+
+document.addEventListener('mouseup', () => {
+  document.querySelectorAll('.key.active').forEach(k => {
+    if (!activeTouches.has('mouse')) {
+      recordDeactivateWrapper(k.dataset.noteId);
+    }
+  });
+  activeTouches.delete('mouse');
+});
+
+pianoEl.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  initAudio();
+  for (let i = 0; i < e.changedTouches.length; i++) {
+    const touch = e.changedTouches[i];
+    const el = document.elementFromPoint(touch.clientX, touch.clientY);
+    const key = el ? el.closest('.key') : null;
+    if (key) {
+      activeTouches.set(touch.identifier, key.dataset.noteId);
+      recordWrapper(key.dataset.noteId, parseFloat(key.dataset.freq));
+    }
+  }
+}, { passive: false });
+
+pianoEl.addEventListener('touchmove', (e) => {
+  e.preventDefault();
+  for (let i = 0; i < e.changedTouches.length; i++) {
+    const touch = e.changedTouches[i];
+    const el = document.elementFromPoint(touch.clientX, touch.clientY);
+    const key = el ? el.closest('.key') : null;
+
+    if (key) {
+      const oldNoteId = activeTouches.get(touch.identifier);
+      if (oldNoteId && oldNoteId !== key.dataset.noteId) {
+        recordDeactivateWrapper(oldNoteId);
+        recordWrapper(key.dataset.noteId, parseFloat(key.dataset.freq));
+        activeTouches.set(touch.identifier, key.dataset.noteId);
+      } else if (!oldNoteId) {
+        recordWrapper(key.dataset.noteId, parseFloat(key.dataset.freq));
+        activeTouches.set(touch.identifier, key.dataset.noteId);
+      }
+    } else {
+      const oldNoteId = activeTouches.get(touch.identifier);
+      if (oldNoteId) {
+        recordDeactivateWrapper(oldNoteId);
+        activeTouches.delete(touch.identifier);
+      }
+    }
+  }
+}, { passive: false });
+
+pianoEl.addEventListener('touchend', (e) => {
+  e.preventDefault();
+  for (let i = 0; i < e.changedTouches.length; i++) {
+    const touch = e.changedTouches[i];
+    const noteId = activeTouches.get(touch.identifier);
+    if (noteId) {
+      recordDeactivateWrapper(noteId);
+      activeTouches.delete(touch.identifier);
+    }
+  }
+}, { passive: false });
+
+pianoEl.addEventListener('touchcancel', (e) => {
+  for (let i = 0; i < e.changedTouches.length; i++) {
+    const touch = e.changedTouches[i];
+    const noteId = activeTouches.get(touch.identifier);
+    if (noteId) {
+      recordDeactivateWrapper(noteId);
+      activeTouches.delete(touch.identifier);
+    }
+  }
+});
+
+// ─── Playback System ──────────────────────────────────
+function playRecording() {
+  if (recordedNotes.length === 0) return;
+  initAudio();
+
+  const btnPlay = document.getElementById('btnPlay');
+  const btnStop = document.getElementById('btnStop');
+  btnPlay.disabled = true;
+  btnStop.disabled = false;
+  setStatus('▶ Playing recording...');
+
+  playbackTimeouts.forEach(t => clearTimeout(t));
+  playbackTimeouts = [];
+
+  recordedNotes.forEach(event => {
+    const t = setTimeout(() => {
+      if (event.type === 'on') {
+        activateKey(event.noteId, event.freq);
+      } else {
+        deactivateKey(event.noteId);
+      }
+    }, event.time);
+    playbackTimeouts.push(t);
+  });
+
+  const lastTime = recordedNotes[recordedNotes.length - 1].time;
+  const endT = setTimeout(() => {
+    btnPlay.disabled = false;
+    btnStop.disabled = true;
+    setStatus('✅ Playback complete.');
+  }, lastTime + 500);
+  playbackTimeouts.push(endT);
+}
+
+function stopPlayback() {
+  playbackTimeouts.forEach(t => clearTimeout(t));
+  playbackTimeouts = [];
+
+  Object.keys(activeOscillators).forEach(noteId => deactivateKey(noteId));
+
+  document.getElementById('btnPlay').disabled = recordedNotes.length === 0;
+  document.getElementById('btnStop').disabled = true;
+  setStatus('⏹ Playback stopped.');
+}
+
+// ─── Status Helper ────────────────────────────────────
+function setStatus(msg) {
+  document.getElementById('status').textContent = msg;
+}
+
+// ─── Visualizer ───────────────────────────────────────
+const canvas = document.getElementById('visualizer');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+  const container = canvas.parentElement;
+  canvas.width = container.clientWidth * window.devicePixelRatio;
+  canvas.height = container.clientHeight * window.devicePixelRatio;
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+function drawVisualizer() {
+  requestAnimationFrame(drawVisualizer);
+
+  const w = canvas.width / window.devicePixelRatio;
+  const h = canvas.height / window.devicePixelRatio;
+
+  ctx.fillStyle = 'rgba(10, 10, 26, 0.3)';
+  ctx.fillRect(0, 0, w, h);
+
+  if (!analyser) {
+    const time = Date.now() / 1000;
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(200, 80, 192, 0.3)';
+    ctx.lineWidth = 2;
+    for (let x = 0; x < w; x++) {
+      const y = h / 2 + Math.sin(x * 0.02 + time * 2) * 5;
+      x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    return;
+  }
+
+  const bufferLength = analyser.frequencyBinCount;
+  const dataArray = new Uint8Array(bufferLength);
+  analyser.getByteTimeDomainData(dataArray);
+
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = '#c850c0';
+  ctx.beginPath();
+
+  const sliceWidth = w / bufferLength;
+  let x = 0;
+  for (let i = 0; i < bufferLength; i++) {
+    const v = dataArray[i] / 128.0;
+    const y = (v * h) / 2;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+    x += sliceWidth;
+  }
+  ctx.stroke();
+
+  const freqData = new Uint8Array(analyser.frequencyBinCount);
+  analyser.getByteFrequencyData(freqData);
+
+  const barCount = 64;
+  const barWidth = w / barCount;
+  for (let i = 0; i < barCount; i++) {
+    const idx = Math.floor(i * freqData.length / barCount);
+    const val = freqData[idx] / 255;
+    const barHeight = val * h * 0.8;
+
+    const hue = (i / barCount) * 120 + 260;
+    ctx.fillStyle = `hsla(${hue}, 80%, 60%, ${val * 0.5})`;
+    ctx.fillRect(i * barWidth, h - barHeight, barWidth - 1, barHeight);
+  }
+}
+
+drawVisualizer();
+
+// ─── Keyboard Support (computer keyboard) ──────────────
+const keyMap = {
+  'a': 'C3', 'w': 'C#3', 's': 'D3', 'e': 'D#3', 'd': 'E3',
+  'f': 'F3', 't': 'F#3', 'g': 'G3', 'y': 'G#3', 'h': 'A3',
+  'u': 'A#3', 'j': 'B3',
+  'k': 'C4', 'o': 'C#4', 'l': 'D4', 'p': 'D#4', ';': 'E4',
+  "'": 'F4', ']': 'F#4', '\\': 'G4'
+};
+
+const pressedKeys = new Set();
+
+document.addEventListener('keydown', (e) => {
+  if (e.repeat) return;
+  const noteId = keyMap[e.key.toLowerCase()];
+  if (!noteId || pressedKeys.has(e.key)) return;
+  pressedKeys.add(e.key);
+
+  const el = document.querySelector(`[data-note-id="${noteId}"]`);
+  if (el) {
+    activateKey(noteId, parseFloat(el.dataset.freq));
+    activeTouches.set('kb_' + e.key, noteId);
+  }
+});
+
+document.addEventListener('keyup', (e) => {
+  const noteId = keyMap[e.key.toLowerCase()];
+  if (!noteId) return;
+  pressedKeys.delete(e.key);
+
+  deactivateKey(noteId);
+  activeTouches.delete('kb_' + e.key);
+});
+
+// ─── Volume Control ────────────────────────────────────
+document.getElementById('volumeSlider').addEventListener('input', (e) => {
+  if (masterGain) masterGain.gain.value = e.target.value / 100;
+});
+
+setStatus('🎹 Ready — tap, click, or use your computer keyboard (A-L keys) to play!');
+</script>
+</body>
+</html>

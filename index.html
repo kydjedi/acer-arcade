@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>My Acer Arcade</title>
+<style>
+  :root { color-scheme: dark; --accent: #83b81a; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; padding: 48px 32px 64px;
+    font: 16px/1.5 "Segoe UI", system-ui, sans-serif; color: #f2f4f8;
+    background: radial-gradient(circle at 15% -10%, #1d2740 0%, #0a0d14 55%, #05070b 100%);
+  }
+  header { max-width: 1180px; margin: 0 auto 40px; }
+  h1 { margin: 0; font-size: 2.4rem; letter-spacing: -0.02em; }
+  h1 span { color: var(--accent); }
+  p.lead { margin: 8px 0 0; color: #9aa4b8; }
+  ul.games {
+    max-width: 1180px; margin: 0 auto; padding: 0; list-style: none;
+    display: grid; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+  li.game {
+    position: relative;
+    background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px; overflow: hidden; transition: transform .15s ease, border-color .15s ease;
+  }
+  li.game:hover { transform: translateY(-3px); border-color: var(--accent); }
+  li.game a { display: block; color: inherit; text-decoration: none; }
+  /* Sits above the card link, so opening it never starts the game. */
+  .info-button {
+    position: absolute; top: 10px; right: 10px; z-index: 2; padding: 0;
+    width: 28px; height: 28px; border-radius: 999px; cursor: pointer;
+    display: grid; place-items: center; color: #f2f4f8;
+    background: rgba(5, 7, 11, .65); border: 1px solid rgba(255, 255, 255, .18);
+  }
+  .info-button:hover, .info-button:focus-visible { color: var(--accent); border-color: var(--accent); }
+  /* Kept inside the card, which clips it: the panel scrolls rather than overflows. */
+  .info-panel {
+    position: absolute; top: 46px; right: 10px; left: 10px; z-index: 3;
+    max-height: calc(100% - 56px); overflow: auto;
+    padding: 12px 14px; border-radius: 10px; font-size: .8125rem;
+    background: rgba(9, 12, 20, .97); border: 1px solid rgba(255, 255, 255, .14);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, .45);
+  }
+  .info-panel dl { margin: 0; }
+  .info-panel dt { color: #9aa4b8; font-size: .6875rem; letter-spacing: .06em; text-transform: uppercase; }
+  .info-panel dt + dd { margin: 2px 0 10px; overflow-wrap: anywhere; }
+  .info-panel dd:last-child { margin-bottom: 0; }
+  .info-panel dd.prompt { max-height: 7.5em; overflow: auto; }
+  .cover { aspect-ratio: 1 / 1; background: #131826 center/cover no-repeat; display: grid; place-items: center; }
+  .cover span { font-size: 2.6rem; opacity: .35; }
+  .meta { padding: 14px 16px 18px; }
+  .meta h2 { margin: 0 0 6px; font-size: 1.05rem; }
+  .meta p { margin: 0; font-size: .875rem; color: #9aa4b8; }
+  .empty { max-width: 1180px; margin: 0 auto; color: #9aa4b8; }
+</style>
+</head>
+<body>
+<header>
+  <h1>My Acer <span>Arcade</span></h1>
+  <p class="lead">Games you made with AI Playground, plus a few to start with. Click one to play.</p>
+</header>
+<ul class="games" id="games"></ul>
+<p class="empty" id="empty" hidden>No games saved yet — build one in AI Playground's Game Agent.</p>
+<!-- Inlined on purpose: a file:// page cannot fetch its own library.json, and the
+     arcade has to work with AI Playground closed. -->
+<script type="application/json" id="library">[{"id":"Find Willy!",
+    "name":"Find Willy",
+    "description":"The goal is to find Wally, a man wearing his signature red-and-white striped shirt, bobble hat, and glasses, hidden somewhere in the crowded picture.!",
+    "entry":"find-willy/find-willy.html",
+    "createdAt":1787898935622,
+    "updatedAt":1787904200186,"startingModel":"Qwen3.6-35B-A3B","initialPrompt":"Create a game Where's Willy who weare red-and-white striped shirt, find Willy and win the game."},
+    {"id":"Animal Guesser",
+    "name":"Animal Guesser",
+    "description":"The goal is to guess animals, the first player to guess correcttly wins the game!",
+    "entry":"animal-guesser/animal-guesser.html",
+    "createdAt":1787898935622,
+    "updatedAt":1787904200186,"startingModel":"Qwen3.6-35B-A3B","initialPrompt":"the animal will move quickly across the screen. the first player to guess correctly wins the game!"},
+    {"id":"Web Piano",
+    "name":"Web Piano",
+    "description":"Web Piano",
+    "entry":"web-piano/web-piano.html",
+    "icon":"web-piano/icon.png",
+    "createdAt":1787898935622,
+    "updatedAt":1787904200186,"startingModel":"Qwen3.6-35B-A3B","initialPrompt":"web piano"},
+    {"id":"tic-tac-toe-beyond","name":"Tic Tac Toe Beyond","description":"Neon tic-tac-toe with particle explosions — play a friend or challenge the AI and win with fireworks.","entry":"_arcade-samples/tic-tac-toe-beyond/index.html","icon":"_arcade-samples/tic-tac-toe-beyond/icon.png","createdAt":1786666796502,"updatedAt":1786667305789,"backend":"llamaCPP","startingModel":"Qwen3.6-35B-A3B","initialPrompt":"Tic-Tac-Toe Beyond: Create a game of tic tac toe with modern effects like particles, make it fun"},{"id":"vector-circuit","name":"Vector Circuit","description":"Fly an arrowhead ship through laser-walled arenas that change shape each level—bounce off the rails, blast drones, and dodge chaotic mines.","entry":"_arcade-samples/vector-circuit/index.html","icon":"_arcade-samples/vector-circuit/icon.png","createdAt":1786487162810,"updatedAt":1786488037005,"backend":"cloud","startingModel":"Grok 4.5","initialPrompt":"Create an Omega Race style vector arcade game where you shoot at enemies in a contained track outside and inside track where the sides of the track are boundaries that the ship will bounce off if colliding. Change this so at each level the track changes geometric shape, first a rectangle, then an octagon, then a triangle."},{"id":"neon-drift","name":"Neon Drift","description":"Pilot a neon vector ship through colorful asteroids—thrust, blast rocks into particle shards, and clear waves before they crush you.","entry":"_arcade-samples/neon-drift/index.html","icon":"_arcade-samples/neon-drift/icon.png","createdAt":1786484619995,"updatedAt":1786485507695,"backend":"cloud","startingModel":"Grok 4.5","initialPrompt":"Create a colorful vector game of Asteroids, with a star field in the background, add modern effects like particles for thrust and for explosions. Make it fun and entertaining"},{"id":"pong","name":"Pong","description":"Classic arcade game with AI opponent. Use mouse to control your paddle, dodge the computer's AI opponent! First to 5 points wins!","entry":"_arcade-samples/pong/index.html","icon":"_arcade-samples/pong/icon.png","createdAt":1786483859243,"updatedAt":1786484439638,"backend":"llamaCPP","startingModel":"Qwen3.5-9B","initialPrompt":"Make a game of Pong, keep it classic and simple"}]</script>
+<script>
+  const games = JSON.parse(document.getElementById('library').textContent)
+  const list = document.getElementById('games')
+  if (games.length === 0) document.getElementById('empty').hidden = false
+
+  const INFO_ICON = '<svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 3.2a1.1 1.1 0 110 2.2 1.1 1.1 0 010-2.2zM11 15H9V9h2z"/></svg>'
+  const BACKEND_LABELS = { llamaCPP: 'llamaCPP - GGUF', openVINO: 'OpenVINO', cloud: 'Hybrid Cloud' }
+
+  function backendLabel(backend) {
+    if (!backend) return ''
+    return Object.prototype.hasOwnProperty.call(BACKEND_LABELS, backend)
+      ? BACKEND_LABELS[backend]
+      : backend
+  }
+
+  // Provenance a game was started with. Games made before it was recorded have
+  // none, and get no info button at all.
+  function infoRows(game) {
+    return [
+      { label: 'Backend', value: backendLabel(game.backend) },
+      { label: 'Starting Model', value: game.startingModel },
+      { label: 'Initial Prompt', value: game.initialPrompt, prompt: true },
+    ].filter((row) => typeof row.value === 'string' && row.value !== '')
+  }
+
+  function closeInfoPanels() {
+    for (const panel of document.querySelectorAll('.info-panel')) panel.hidden = true
+    for (const button of document.querySelectorAll('.info-button')) {
+      button.setAttribute('aria-expanded', 'false')
+    }
+  }
+
+  function buildInfo(game) {
+    const rows = infoRows(game)
+    if (rows.length === 0) return null
+    const button = document.createElement('button')
+    button.type = 'button'
+    button.className = 'info-button'
+    button.setAttribute('aria-label', 'Generation info')
+    button.setAttribute('aria-expanded', 'false')
+    button.innerHTML = INFO_ICON
+    const panel = document.createElement('div')
+    panel.className = 'info-panel'
+    panel.hidden = true
+    const definitions = document.createElement('dl')
+    for (const row of rows) {
+      const term = document.createElement('dt')
+      term.textContent = row.label
+      const value = document.createElement('dd')
+      if (row.prompt) value.className = 'prompt'
+      value.textContent = row.value
+      definitions.append(term, value)
+    }
+    panel.append(definitions)
+    button.addEventListener('click', (event) => {
+      const opening = panel.hidden
+      closeInfoPanels()
+      panel.hidden = !opening
+      button.setAttribute('aria-expanded', String(opening))
+      event.stopPropagation()
+    })
+    // Otherwise selecting the prompt text would dismiss the panel mid-drag.
+    panel.addEventListener('click', (event) => event.stopPropagation())
+    return [button, panel]
+  }
+
+  for (const game of games) {
+    const item = document.createElement('li')
+    item.className = 'game'
+    const link = document.createElement('a')
+    link.href = game.entry
+    const cover = document.createElement('div')
+    cover.className = 'cover'
+    if (game.icon) cover.style.backgroundImage = 'url("' + game.icon + '")'
+    else cover.innerHTML = '<span>🎮</span>'
+    const meta = document.createElement('div')
+    meta.className = 'meta'
+    const name = document.createElement('h2')
+    name.textContent = game.name
+    const description = document.createElement('p')
+    description.textContent = game.description
+    meta.append(name, description)
+    link.append(cover, meta)
+    item.append(link)
+    const info = buildInfo(game)
+    if (info) item.append(info[0], info[1])
+    list.append(item)
+  }
+
+  document.addEventListener('click', closeInfoPanels)
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeInfoPanels()
+  })
+</script>
+</body>
+</html>

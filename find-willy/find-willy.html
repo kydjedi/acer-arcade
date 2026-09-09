@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Find Willy</title>
+<style>
+body{
+    margin:0;
+    font-family:Arial,sans-serif;
+    background:#87ceeb;
+    text-align:center;
+}
+
+h1{
+    margin:15px;
+}
+
+#game{
+    width:1280px;
+    height:750px;
+    margin:auto;
+    background:#dff5d8;
+    border:4px solid #333;
+    position:relative;
+    overflow:hidden;
+    cursor:crosshair;
+}
+
+.person{
+    position:absolute;
+    width:24px;
+    height:40px;
+}
+
+.head{
+    width:14px;
+    height:14px;
+    background:#f5c9a8;
+    border-radius:50%;
+    margin:auto;
+}
+
+.body{
+    width:18px;
+    height:18px;
+    margin:auto;
+    margin-top:-2px;
+    border-radius:2px;
+}
+
+.legs{
+    width:2px;
+    height:10px;
+    background:#333;
+    position:absolute;
+    bottom:0;
+    left:8px;
+    box-shadow:6px 0 #333;
+}
+
+.arm{
+    width:14px;
+    height:2px;
+    background:#333;
+    position:absolute;
+    top:18px;
+    left:2px;
+}
+
+.found{
+    transform:scale(1.8);
+    transition:.3s;
+}
+
+#message{
+    font-size:24px;
+    color:green;
+    font-weight:bold;
+    margin-top:10px;
+}
+</style>
+</head>
+<body>
+
+<h1>🔎 Find Willy!</h1>
+<p>Find the person wearing the <b>red-and-white striped shirt</b>.</p>
+
+<button onclick="Manifier()">Magnifier</button>
+<div id="game"></div>
+
+<div id="message"></div>
+
+<script>
+const game=document.getElementById("game");
+
+const WIDTH=1280;
+const HEIGHT=750;
+const PEOPLE=600;
+
+let willyIndex=Math.floor(Math.random()*PEOPLE);
+
+function randomColor(){
+    const colors=[
+        "#4CAF50","#2196F3","#FF9800","#9C27B0",
+        "#795548","#009688","#607D8B","#E91E63",
+        "#3F51B5","#8BC34A","#FFC107"
+    ];
+    return colors[Math.floor(Math.random()*colors.length)];
+}
+
+for(let i=0;i<PEOPLE;i++){
+
+    const p=document.createElement("div");
+    p.className="person";
+
+    p.style.left=Math.random()*(WIDTH-30)+"px";
+    p.style.top=Math.random()*(HEIGHT-45)+"px";
+
+    const head=document.createElement("div");
+    head.className="head";
+
+    const body=document.createElement("div");
+    body.className="body";
+
+    if(i===willyIndex){
+        body.style.background=
+        "repeating-linear-gradient(to bottom,red 0 3px,white 3px 6px)";
+    }else{
+        body.style.background=randomColor();
+    }
+
+    const arm=document.createElement("div");
+    arm.className="arm";
+
+    const legs=document.createElement("div");
+    legs.className="legs";
+
+    p.appendChild(head);
+    p.appendChild(body);
+    p.appendChild(arm);
+    p.appendChild(legs);
+
+    if(i===willyIndex){
+        p.addEventListener("click",()=>{
+            p.classList.add("found");
+            document.getElementById("message").innerHTML=
+            "🎉 You found Willy!";
+        });
+    }else{
+        p.addEventListener("click",()=>{
+            p.style.opacity=0.4;
+        });
+    }
+
+    game.appendChild(p);
+}
+
+async function Manifier() {
+    let r = await fetch(
+            "http://localhost:8000/display_lens",
+            {
+                method:"POST"
+            }
+        );
+
+        let data = await r.json();
+
+        document.getElementById(
+            "result"
+        ).textContent = data.result;
+}
+</script>
+
+</body>
+</html>
