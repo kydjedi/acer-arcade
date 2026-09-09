@@ -65,13 +65,30 @@
 <p class="empty" id="empty" hidden>No games saved yet — build one in AI Playground's Game Agent.</p>
 <script src="config.js"></script>
 <script>
-  // Apply branding from config.js. Falls back to the original title if config is missing.
-  if (window.ARCADE_CONFIG) {
-    const title = window.ARCADE_CONFIG.title || 'My Acer Arcade'
-    const accent = window.ARCADE_CONFIG.accentText || 'Arcade'
-    const prefix = title.endsWith(accent) ? title.slice(0, -accent.length) : title + ' '
-    document.getElementById('arcade-title').innerHTML = prefix + '<span>' + accent + '</span>'
+  // Apply branding from config.js. accentText is highlighted where it appears in title.
+  {
+    const config = window.ARCADE_CONFIG || {}
+    const title = config.title || 'My Acer Arcade'
+    const accent = config.accentText || 'Arcade'
+    const heading = document.getElementById('arcade-title')
+
     document.title = title
+    heading.textContent = ''
+
+    const accentIndex = accent ? title.indexOf(accent) : -1
+    if (accentIndex >= 0) {
+      heading.appendChild(document.createTextNode(title.slice(0, accentIndex)))
+
+      const span = document.createElement('span')
+      span.textContent = accent
+      heading.appendChild(span)
+
+      heading.appendChild(
+        document.createTextNode(title.slice(accentIndex + accent.length))
+      )
+    } else {
+      heading.textContent = title
+    }
   }
 </script>
 <!-- Inlined on purpose: a file:// page cannot fetch its own library.json, and the
