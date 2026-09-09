@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>My Acer Arcade</title>
+<title id="page-title">My Acer Arcade</title>
 <style>
   :root { color-scheme: dark; --accent: #83b81a; }
   * { box-sizing: border-box; }
@@ -58,11 +58,22 @@
 </head>
 <body>
 <header>
-  <h1>My Acer <span>Arcade</span></h1>
+  <h1 id="arcade-title">My Acer <span>Arcade</span></h1>
   <p class="lead">Games you made with AI Playground, plus a few to start with. Click one to play.</p>
 </header>
 <ul class="games" id="games"></ul>
 <p class="empty" id="empty" hidden>No games saved yet — build one in AI Playground's Game Agent.</p>
+<script src="config.js"></script>
+<script>
+  // Apply branding from config.js. Falls back to the original title if config is missing.
+  if (window.ARCADE_CONFIG) {
+    const title = window.ARCADE_CONFIG.title || 'My Acer Arcade'
+    const accent = window.ARCADE_CONFIG.accentText || 'Arcade'
+    const prefix = title.endsWith(accent) ? title.slice(0, -accent.length) : title + ' '
+    document.getElementById('arcade-title').innerHTML = prefix + '<span>' + accent + '</span>'
+    document.title = title
+  }
+</script>
 <!-- Inlined on purpose: a file:// page cannot fetch its own library.json, and the
      arcade has to work with AI Playground closed. -->
 <script type="application/json" id="library">[{"id":"Find Willy!",
