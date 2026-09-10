@@ -1,4 +1,4 @@
 window.ARCADE_CONFIG = {
-  title: 'My Acer Arcade 091002',
+  title: 'Acer Wason Arcade 091003',
   accentText: 'Arcade'
 }
