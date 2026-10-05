@@ -93,18 +93,7 @@
 </script>
 <!-- Inlined on purpose: a file:// page cannot fetch its own library.json, and the
      arcade has to work with AI Playground closed. -->
-<script type="application/json" id="library">[{"id":"Find Willy!",
-    "name":"Find Willy",
-    "description":"The goal is to find Wally, a man wearing his signature red-and-white striped shirt, bobble hat, and glasses, hidden somewhere in the crowded picture.!",
-    "entry":"find-willy/find-willy.html",
-    "createdAt":1787898935622,
-    "updatedAt":1787904200186,"startingModel":"Qwen3.6-35B-A3B","initialPrompt":"Create a game Where's Willy who weare red-and-white striped shirt, find Willy and win the game."},
-    {"id":"Animal Guesser",
-    "name":"Animal Guesser",
-    "description":"The goal is to guess animals, the first player to guess correcttly wins the game!",
-    "entry":"animal-guesser/animal-guesser.html",
-    "createdAt":1787898935622,
-    "updatedAt":1787904200186,"startingModel":"Qwen3.6-35B-A3B","initialPrompt":"the animal will move quickly across the screen. the first player to guess correctly wins the game!"},
+<script type="application/json" id="library">[
     {"id":"Web Piano",
     "name":"Web Piano",
     "description":"Web Piano",
@@ -112,7 +101,7 @@
     "icon":"web-piano/icon.png",
     "createdAt":1787898935622,
     "updatedAt":1787904200186,"startingModel":"Qwen3.6-35B-A3B","initialPrompt":"web piano"},
-    {"id":"tic-tac-toe-beyond","name":"Tic Tac Toe Beyond","description":"Neon tic-tac-toe with particle explosions — play a friend or challenge the AI and win with fireworks.","entry":"_arcade-samples/tic-tac-toe-beyond/index.html","icon":"_arcade-samples/tic-tac-toe-beyond/icon.png","createdAt":1786666796502,"updatedAt":1786667305789,"backend":"llamaCPP","startingModel":"Qwen3.6-35B-A3B","initialPrompt":"Tic-Tac-Toe Beyond: Create a game of tic tac toe with modern effects like particles, make it fun"},{"id":"vector-circuit","name":"Vector Circuit","description":"Fly an arrowhead ship through laser-walled arenas that change shape each level—bounce off the rails, blast drones, and dodge chaotic mines.","entry":"_arcade-samples/vector-circuit/index.html","icon":"_arcade-samples/vector-circuit/icon.png","createdAt":1786487162810,"updatedAt":1786488037005,"backend":"cloud","startingModel":"Grok 4.5","initialPrompt":"Create an Omega Race style vector arcade game where you shoot at enemies in a contained track outside and inside track where the sides of the track are boundaries that the ship will bounce off if colliding. Change this so at each level the track changes geometric shape, first a rectangle, then an octagon, then a triangle."},{"id":"neon-drift","name":"Neon Drift","description":"Pilot a neon vector ship through colorful asteroids—thrust, blast rocks into particle shards, and clear waves before they crush you.","entry":"_arcade-samples/neon-drift/index.html","icon":"_arcade-samples/neon-drift/icon.png","createdAt":1786484619995,"updatedAt":1786485507695,"backend":"cloud","startingModel":"Grok 4.5","initialPrompt":"Create a colorful vector game of Asteroids, with a star field in the background, add modern effects like particles for thrust and for explosions. Make it fun and entertaining"},{"id":"pong","name":"Pong","description":"Classic arcade game with AI opponent. Use mouse to control your paddle, dodge the computer's AI opponent! First to 5 points wins!","entry":"_arcade-samples/pong/index.html","icon":"_arcade-samples/pong/icon.png","createdAt":1786483859243,"updatedAt":1786484439638,"backend":"llamaCPP","startingModel":"Qwen3.5-9B","initialPrompt":"Make a game of Pong, keep it classic and simple"}]</script>
+    {"id":"vector-circuit","name":"Vector Circuit","description":"Fly an arrowhead ship through laser-walled arenas that change shape each level—bounce off the rails, blast drones, and dodge chaotic mines.","entry":"_arcade-samples/vector-circuit/index.html","icon":"_arcade-samples/vector-circuit/icon.png","createdAt":1786487162810,"updatedAt":1786488037005,"backend":"cloud","startingModel":"Grok 4.5","initialPrompt":"Create an Omega Race style vector arcade game where you shoot at enemies in a contained track outside and inside track where the sides of the track are boundaries that the ship will bounce off if colliding. Change this so at each level the track changes geometric shape, first a rectangle, then an octagon, then a triangle."},{"id":"neon-drift","name":"Neon Drift","description":"Pilot a neon vector ship through colorful asteroids—thrust, blast rocks into particle shards, and clear waves before they crush you.","entry":"_arcade-samples/neon-drift/index.html","icon":"_arcade-samples/neon-drift/icon.png","createdAt":1786484619995,"updatedAt":1786485507695,"backend":"cloud","startingModel":"Grok 4.5","initialPrompt":"Create a colorful vector game of Asteroids, with a star field in the background, add modern effects like particles for thrust and for explosions. Make it fun and entertaining"},{"id":"pong","name":"Pong","description":"Classic arcade game with AI opponent. Use mouse to control your paddle, dodge the computer's AI opponent! First to 5 points wins!","entry":"_arcade-samples/pong/index.html","icon":"_arcade-samples/pong/icon.png","createdAt":1786483859243,"updatedAt":1786484439638,"backend":"llamaCPP","startingModel":"Qwen3.5-9B","initialPrompt":"Make a game of Pong, keep it classic and simple"}]</script>
 <script>
   const games = JSON.parse(document.getElementById('library').textContent)
   const list = document.getElementById('games')
